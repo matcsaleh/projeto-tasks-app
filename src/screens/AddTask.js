@@ -1,12 +1,49 @@
-import React, { Component } from 'react';
-import { Modal, View, StyleSheet, TouchableWithoutFeedback, Text, TextInput, TouchableOpacity } from 'react-native';
+import React, { Component }  from 'react';
+import { Modal, View, StyleSheet, TouchableWithoutFeedback, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import commonStyles from '../commonStyles';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment'
 
-const initialState = { desc: '' };
+const initialState = { desc: '' ,date : new Date(), showDatePicker: false };
 export default class AddTask extends Component {
 
     state = {
         ...initialState
+    }
+
+    save = () =>{
+        const newTask = {
+            desc: this.state.desc,
+            date: this.state.date
+        }
+        
+        this.props.onSave && this.props.onSave( newTask )
+
+        this.setState( {...initialState} );
+    }
+    getDatePicker = () => {
+        let datePicker = <DateTimePicker 
+                    value = {this.state.date}
+                    onChange = { (_ , date) => this.setState( {date, showDatePicker: false} ) }
+                    mode = 'date' />
+
+        const dateString =  moment( this.state.date ).format( 'ddd, D [de] MMMM');
+
+            if( Platform.OS === 'android'){
+                datePicker = (
+                    <View>
+                        <TouchableOpacity onPress = { () => this.setState( {showDatePicker: true }) }>
+                            <Text style = {styles.date}>
+                                {dateString}
+                            </Text>
+                        </TouchableOpacity>
+                        {this.state.showDatePicker && datePicker}
+                    </View>
+                )
+            }
+
+                    return datePicker;
+        
     }
 
 
@@ -31,8 +68,9 @@ export default class AddTask extends Component {
                     <TextInput style = { styles.input} placeholder = "Informe a Descrição" value = {this.state.desc} 
                     onChangeText = { desc => this.setState( { desc } ) }>
                     </TextInput>
+                    {this.getDatePicker()}
                     <View style = {styles.buttons}>
-                        <TouchableOpacity> 
+                        <TouchableOpacity onPress = {this.save}> 
                             <Text style = {styles.button}>
                                 Salvar
                             </Text>
@@ -80,6 +118,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end'
     },
     input: {
+        marginLeft: 15,
         fontFamily: commonStyles.fontFamily,
         width: '90%',
         height: 40,
@@ -93,5 +132,10 @@ const styles = StyleSheet.create({
         margin: 20,
         marginRight: 30,
         color: commonStyles.colors.today
+    },
+    date: {
+        marginLeft: 15,
+        fontFamily: commonStyles.fontFamily,
+        fontSize: 20
     }
 })
