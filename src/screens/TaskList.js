@@ -7,29 +7,24 @@ import commonStyles from '../commonStyles';
 import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import AddTask from './AddTask';
+import AsyncStorage from "@react-native-community/async-storage"
 
-
+const inicialState = {
+    showDoneTasks: true,
+        visibleTasks: [],
+        showAddTask: false,
+        tasks: []
+}
 export default class TaskList extends Component {
 
     state = {
-        showDoneTasks: true,
-        visibleTasks: [],
-        showAddTask: false,
-        tasks: [{
-            id: Math.random(),
-            desc: 'Comprar Livro',
-            estimateAt: new Date(),
-            doneAt: new Date()
-        },{
-            id: Math.random(),
-            desc: 'Ler Livro',
-            estimateAt: new Date(),
-            doneAt: null
-        }]
+        ...inicialState
     }
 
-    componentDidMount = () => {
-        this.filterTasks();
+    componentDidMount = async () => {
+        const stateString = await AsyncStorage.getItem( 'tasksState' );
+        const state = JSON.parse( stateString ) || inicialState
+        this.setState( state,this.filterTasks );
     }
 
     filterTasks = () => {
@@ -40,7 +35,8 @@ export default class TaskList extends Component {
             const pending = task => task.doneAt === null
             visibleTasks = this.state.tasks.filter( pending );
         }
-        this.setState( { visibleTasks })
+        this.setState( { visibleTasks }),
+        AsyncStorage.setItem( 'tasksState', JSON.stringify(this.state) );
     }
 
     toogleFilter = () => {
